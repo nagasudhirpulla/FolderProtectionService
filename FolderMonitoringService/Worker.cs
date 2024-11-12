@@ -1,24 +1,24 @@
+using FolderMonitoringService.Interfaces;
+
 namespace FolderMonitoringService
 {
-    public class Worker : BackgroundService
+    public class Worker(ILogger<Worker> logger, IAppFileWatcher fileWatcher) : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
-
-        public Worker(ILogger<Worker> logger)
-        {
-            _logger = logger;
-        }
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            logger.LogInformation("starting file system monitoring as per configurations");
+            fileWatcher.Start();
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (_logger.IsEnabled(LogLevel.Information))
-                {
-                    _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                }
                 await Task.Delay(1000, stoppingToken);
             }
         }
+
+        public override async Task StopAsync(CancellationToken stoppingToken)
+        {
+            fileWatcher.Stop();
+            await base.StopAsync(stoppingToken);
+        }
+
     }
 }
