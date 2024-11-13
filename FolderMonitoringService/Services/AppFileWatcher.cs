@@ -59,16 +59,16 @@ namespace FolderMonitoringService.Services
 
                 // Associate the event that will be triggered when a new file
                 // is added to the monitored folder, using a lambda expression
-                
+
                 //folderWatch.Created += (senderObj, fileSysArgs) =>
                 //  OnFileChanged(senderObj, fileSysArgs, folderConfig);
-                
+
                 folderWatch.Changed += (senderObj, fileSysArgs) =>
                   OnFileChanged(senderObj, fileSysArgs, folderConfig);
-                
+
                 folderWatch.Renamed += (senderObj, fileSysArgs) =>
                   OnFileChanged(senderObj, fileSysArgs, folderConfig);
-                
+
                 folderWatch.Error += OnFileWatcherError;
 
                 // Begin watching
@@ -87,16 +87,21 @@ namespace FolderMonitoringService.Services
             // perform initial folder scan if required
             foreach (var folderConfig in FolderMonitorConfigs)
             {
+                // check if initial scan required
                 if (!folderConfig.InitialScan)
                 {
                     continue;
                 }
+                var folderPath = folderConfig.FolderPath;
+                
                 // check if directory is a valid
-                if (!Directory.Exists(folderConfig.FolderPath))
+                if (!Directory.Exists(folderPath))
                 {
                     continue;
                 }
-                // TODO process directory
+                
+                // process directory
+                ProcessDirectory(folderPath, folderConfig);
             }
 
         }
@@ -140,10 +145,10 @@ namespace FolderMonitoringService.Services
 
             // delete if file size is more
             var maxAllowedFileSize = folderConfig.MaxFileSizeMb;
-            long fileSizeKb = new FileInfo(filePath).Length / (1024*1024);
-            if (fileSizeKb > maxAllowedFileSize)
+            double fileSizeMb = (double)new FileInfo(filePath).Length / (double)(1024 * 1024);
+            if (fileSizeMb > maxAllowedFileSize)
             {
-                DeleteFile(filePath, $"file size {fileSizeKb}KB is more than {maxAllowedFileSize}KB");
+                DeleteFile(filePath, $"file size {fileSizeMb}MB is more than {maxAllowedFileSize}MB");
                 return true;
             }
             return false;
@@ -162,6 +167,22 @@ namespace FolderMonitoringService.Services
         private void OnFileWatcherError(object sender, ErrorEventArgs e)
         {
             logger.LogError($"File error event {e.GetException().Message}");
+        }
+
+        public void ProcessDirectory(string targetDirectory, FolderMonitorConfig folderConfig)
+        {
+            // Process the list of files found in the directory.
+            string[] fileEntries = Directory.GetFiles(targetDirectory);
+            foreach (string fileName in fileEntries)
+                _ = DeleteFileIfViolating(fileName, folderConfig);
+
+            // Recurse into subdirectories of this directory.
+            if (folderConfig.IncludeSubFolders)
+            {
+                string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
+                foreach (string subdirectory in subdirectoryEntries)
+                    ProcessDirectory(subdirectory, folderConfig);
+            }
         }
 
         private bool WaitForFile(string fullPath)
