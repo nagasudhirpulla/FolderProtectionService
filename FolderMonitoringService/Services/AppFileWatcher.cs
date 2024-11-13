@@ -99,7 +99,9 @@ namespace FolderMonitoringService.Services
                 {
                     continue;
                 }
-                
+
+                logger.LogInformation(message: $"Starting initial scan of folder {folderPath}");
+
                 // process directory
                 ProcessDirectory(folderPath, folderConfig);
             }
@@ -205,9 +207,9 @@ namespace FolderMonitoringService.Services
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(
-                       "WaitForFile {0} failed to get an exclusive lock: {1}",
-                        fullPath, ex.ToString());
+                    //logger.LogWarning(
+                    //   "WaitForFile {0} failed to get an exclusive lock: {1}",
+                    //    fullPath, ex.ToString());
 
                     if (numTries > _maxRetries)
                     {
