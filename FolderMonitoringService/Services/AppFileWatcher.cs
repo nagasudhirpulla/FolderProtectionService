@@ -93,7 +93,7 @@ namespace FolderMonitoringService.Services
                     continue;
                 }
                 var folderPath = folderConfig.FolderPath;
-                
+
                 // check if directory is a valid
                 if (!Directory.Exists(folderPath))
                 {
@@ -139,7 +139,7 @@ namespace FolderMonitoringService.Services
             // delete if file extension is not valid
             string extsn = Path.GetExtension(filePath);
             List<string> allowedExtsns = folderConfig.AllowedExtensions;
-            if (!allowedExtsns.Contains(extsn))
+            if ((allowedExtsns.Count > 0) && !allowedExtsns.Contains(extsn))
             {
                 DeleteFile(filePath, $"file extension {extsn} not allowed");
                 return true;
@@ -148,7 +148,7 @@ namespace FolderMonitoringService.Services
             // delete if file size is more
             var maxAllowedFileSize = folderConfig.MaxFileSizeMb;
             double fileSizeMb = (double)new FileInfo(filePath).Length / (double)(1024 * 1024);
-            if (fileSizeMb > maxAllowedFileSize)
+            if ((maxAllowedFileSize > 0) && (fileSizeMb > maxAllowedFileSize))
             {
                 DeleteFile(filePath, $"file size {fileSizeMb}MB is more than {maxAllowedFileSize}MB");
                 return true;
