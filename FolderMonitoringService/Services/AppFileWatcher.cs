@@ -174,15 +174,13 @@ namespace FolderMonitoringService.Services
         public void ProcessDirectory(string targetDirectory, FolderMonitorConfig folderConfig)
         {
             // Process the list of files found in the directory.
-            string[] fileEntries = Directory.GetFiles(targetDirectory);
-            foreach (string fileName in fileEntries)
+            foreach (string fileName in Directory.EnumerateFiles(targetDirectory))
                 _ = DeleteFileIfViolating(fileName, folderConfig);
 
             // Recurse into subdirectories of this directory.
             if (folderConfig.IncludeSubFolders)
             {
-                string[] subdirectoryEntries = Directory.GetDirectories(targetDirectory);
-                foreach (string subdirectory in subdirectoryEntries)
+                foreach (string subdirectory in Directory.EnumerateDirectories(targetDirectory))
                     ProcessDirectory(subdirectory, folderConfig);
             }
         }
