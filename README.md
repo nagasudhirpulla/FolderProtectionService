@@ -48,3 +48,4 @@ dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false
 
 ## Run the app as a background service with nssm
 TODO
+* Quartz schedule job from a controller - https://github.com/quartznet/quartznet/blob/main/src/Quartz.Examples.AspNetCore/Pages/Index.cshtml.cs
