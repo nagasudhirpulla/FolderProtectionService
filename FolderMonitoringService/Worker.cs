@@ -7,7 +7,7 @@ namespace FolderMonitoringService
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             logger.LogInformation("starting file system monitoring as per configurations");
-            fileWatcher.Start();
+            await fileWatcher.StartAsync(stoppingToken);
             while (!stoppingToken.IsCancellationRequested)
             {
                 await Task.Delay(1000, stoppingToken);
@@ -16,7 +16,7 @@ namespace FolderMonitoringService
 
         public override async Task StopAsync(CancellationToken stoppingToken)
         {
-            fileWatcher.Stop();
+            await fileWatcher.Stop(stoppingToken);
             await base.StopAsync(stoppingToken);
         }
 

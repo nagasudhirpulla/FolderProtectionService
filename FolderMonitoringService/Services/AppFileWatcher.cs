@@ -1,231 +1,147 @@
 ﻿using FolderMonitoringService.Config;
 using FolderMonitoringService.Interfaces;
-using Microsoft.Extensions.Logging;
+using Quartz;
+using Quartz.Util;
 
-namespace FolderMonitoringService.Services
+namespace FolderMonitoringService.Services;
+
+public class AppFileWatcher(ILogger<AppFileWatcher> logger, IConfiguration configuration, ISchedulerFactory schedulerFactory, FilesService filesService) : IAppFileWatcher
 {
-    public class AppFileWatcher(ILogger<Worker> logger, IConfiguration configuration) : IAppFileWatcher
+    private readonly List<FileSystemWatcher> FolderWatchers = [];
+    private readonly List<FolderMonitorConfig> FolderMonitorConfigs = configuration.GetSection("Folders").Get<List<FolderMonitorConfig>>() ?? [];
+
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        private readonly List<FileSystemWatcher> FolderWatchers = [];
-        private readonly List<FolderMonitorConfig> FolderMonitorConfigs = configuration.GetSection("Folders").Get<List<FolderMonitorConfig>>() ?? [];
-        private const int _maxRetries = 10;
+        // Start the file system watcher for each of the file specification
+        await StartFileSystemWatcherAsync(cancellationToken);
+    }
+    private async Task StartFileSystemWatcherAsync(CancellationToken cancellationToken)
+    {
+        // Create folder watcher for each configuration
+        foreach (FolderMonitorConfig folderConfig in FolderMonitorConfigs)
+        {
+            DirectoryInfo dir = new(folderConfig.FolderPath);
 
-        public void Start()
-        {
-            // Start the file system watcher for each of the file specification
-            StartFileSystemWatcher();
-        }
-        private void StartFileSystemWatcher()
-        {
-            // Create folder watcher for each configuration
-            foreach (FolderMonitorConfig folderConfig in FolderMonitorConfigs)
+            // check if directory is valid
+            if (!dir.Exists)
             {
-                DirectoryInfo dir = new(folderConfig.FolderPath);
+                logger.LogError($"directory not found at {folderConfig.FolderPath}");
+                continue;
+            }
 
-                // check if directory is valid
-                if (!dir.Exists)
+            // Checks whether the folder is enabled
+            if (!folderConfig.Enabled)
+            {
+                logger.LogError($"directory monitoring disabled for {folderConfig.FolderPath}");
+                continue;
+            }
+
+            // Creates a new instance of FileSystemWatcher
+            FileSystemWatcher folderWatch = new();
+
+            // clean allowed extensions
+            folderConfig.AllowedExtensions = folderConfig.AllowedExtensions.Select(e =>
+            {
+                string extnsStr = e.ToLower();
+                if (!extnsStr.StartsWith('.'))
                 {
-                    logger.LogError($"directory not found at {folderConfig.FolderPath}");
-                    continue;
+                    extnsStr = "." + extnsStr;
                 }
+                return extnsStr;
+            }).ToList();
 
-                // Checks whether the folder is enabled
-                if (!folderConfig.Enabled)
-                {
-                    logger.LogError($"directory monitoring disabled for {folderConfig.FolderPath}");
-                    continue;
-                }
+            // Folder location to monitor
+            folderWatch.Path = folderConfig.FolderPath;
 
-                // Creates a new instance of FileSystemWatcher
-                FileSystemWatcher folderWatch = new();
+            // Subscribe to notify filters
+            folderWatch.NotifyFilter = NotifyFilters.FileName
+                         | NotifyFilters.Size;
 
-                // clean allowed extensions
-                folderConfig.AllowedExtensions = folderConfig.AllowedExtensions.Select(e =>
-                {
-                    string extnsStr = e.ToLower();
-                    if (!extnsStr.StartsWith('.'))
-                    {
-                        extnsStr = "." + extnsStr;
-                    }
-                    return extnsStr;
-                }).ToList();
+            //folderWatch.Created += (senderObj, fileSysArgs) =>
+            //  OnFileChanged(senderObj, fileSysArgs, folderConfig);
 
-                // Folder location to monitor
-                folderWatch.Path = folderConfig.FolderPath;
+            folderWatch.Changed += (senderObj, fileSysArgs) =>
+              OnFileChanged(senderObj, fileSysArgs, folderConfig);
 
-                // Subscribe to notify filters
-                folderWatch.NotifyFilter = NotifyFilters.FileName
-                             | NotifyFilters.Size;
+            folderWatch.Renamed += (senderObj, fileSysArgs) =>
+              OnFileChanged(senderObj, fileSysArgs, folderConfig);
 
-                // Associate the event that will be triggered when a new file
-                // is added to the monitored folder, using a lambda expression
+            folderWatch.Error += OnFileWatcherError;
 
-                //folderWatch.Created += (senderObj, fileSysArgs) =>
-                //  OnFileChanged(senderObj, fileSysArgs, folderConfig);
+            // Begin watching
+            folderWatch.EnableRaisingEvents = true;
 
-                folderWatch.Changed += (senderObj, fileSysArgs) =>
-                  OnFileChanged(senderObj, fileSysArgs, folderConfig);
+            // enable monitoring in sub folders also
+            folderWatch.IncludeSubdirectories = folderConfig.IncludeSubFolders;
 
-                folderWatch.Renamed += (senderObj, fileSysArgs) =>
-                  OnFileChanged(senderObj, fileSysArgs, folderConfig);
+            // Add the systemWatcher to the list
+            FolderWatchers.Add(folderWatch);
 
-                folderWatch.Error += OnFileWatcherError;
+            // Record a log entry into Windows Event Log
+            logger.LogInformation(message: $"Starting to monitor files for allowed extensions {string.Join(", ", folderConfig.AllowedExtensions)} in the folder {folderWatch.Path}");
 
-                // Begin watching
-                folderWatch.EnableRaisingEvents = true;
-
-                // enable monitoring in sub folders also
-                folderWatch.IncludeSubdirectories = folderConfig.IncludeSubFolders;
-
-                // Add the systemWatcher to the list
-                FolderWatchers.Add(folderWatch);
-
-                // Record a log entry into Windows Event Log
-                logger.LogInformation(message: $"Starting to monitor files for allowed extensions {string.Join(", ", folderConfig.AllowedExtensions)} in the folder {folderWatch.Path}");
-            }
-
-            // perform initial folder scan if required
-            foreach (var folderConfig in FolderMonitorConfigs)
+            // configure file age monitoring schedulers
+            if (folderConfig.MaxAgeDays > 0 && !folderConfig.AgeCheckCron.IsNullOrWhiteSpace())
             {
-                // check if initial scan required
-                if (!folderConfig.InitialScan)
-                {
-                    continue;
-                }
-                var folderPath = folderConfig.FolderPath;
-
-                // check if directory is a valid
-                if (!Directory.Exists(folderPath))
-                {
-                    continue;
-                }
-
-                logger.LogInformation(message: $"Starting initial scan of folder {folderPath}");
-
-                // process directory
-                ProcessDirectory(folderPath, folderConfig);
+                var trigger = TriggerBuilder.Create()
+                            .WithCronSchedule(folderConfig.AgeCheckCron)
+                            .Build();
+                var job = JobBuilder.Create<FilesAgeCheckJob>()
+                           .Build();
+                job.JobDataMap[nameof(FolderMonitorConfig)] = folderConfig;
+                var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
+                await scheduler.ScheduleJob(job, trigger, cancellationToken);
             }
-
         }
 
-        public void Stop()
+        // perform initial folder scan if required
+        foreach (var folderConfig in FolderMonitorConfigs)
         {
-            foreach (FileSystemWatcher fsw in FolderWatchers)
-            {
-                // Stop listening
-                fsw.EnableRaisingEvents = false;
-                // Dispose the Object
-                fsw.Dispose();
-            }
-            // Clean the list
-            FolderWatchers.Clear();
-        }
+            //check if config is enabled
+            if (!folderConfig.Enabled) { continue; }
 
-        private void OnFileChanged(object sender, FileSystemEventArgs e, FolderMonitorConfig folderConfig)
+            // check if initial scan required
+            if (!folderConfig.InitialScan) { continue; }
+
+            var folderPath = folderConfig.FolderPath;
+
+            // check if directory is a valid
+            if (!Directory.Exists(folderPath)) { continue; }
+
+            logger.LogInformation(message: $"Starting initial scan of folder {folderPath}");
+
+            // process directory
+            filesService.ProcessDirectory(folderPath, folderConfig);
+        }
+    }
+
+    public async Task Stop(CancellationToken cancellationToken)
+    {
+        foreach (FileSystemWatcher fsw in FolderWatchers)
         {
-            //logger.LogWarning($"{e.ChangeType}");
-            _ = DeleteFileIfViolating(e.FullPath, folderConfig);
+            // Stop listening
+            fsw.EnableRaisingEvents = false;
+            // Dispose the Object
+            fsw.Dispose();
         }
+        // Clean the list
+        FolderWatchers.Clear();
 
-        private bool DeleteFileIfViolating(string filePath, FolderMonitorConfig folderConfig)
+        // stop all schedulers
+        foreach (var sch in await schedulerFactory.GetAllSchedulers(cancellationToken))
         {
-            // check if file is valid
-            bool isFile = File.Exists(filePath);
-            if (!isFile)
-            {
-                return false;
-            }
-
-            // delete if file extension is not valid
-            string extsn = Path.GetExtension(filePath);
-            List<string> allowedExtsns = folderConfig.AllowedExtensions;
-            if ((allowedExtsns.Count > 0) && !allowedExtsns.Contains(extsn))
-            {
-                DeleteFile(filePath, $"file extension {extsn} not allowed");
-                return true;
-            }
-
-            // delete if file size is more
-            var maxAllowedFileSize = folderConfig.MaxFileSizeMb;
-            double fileSizeMb = (double)new FileInfo(filePath).Length / (double)(1024 * 1024);
-            if ((maxAllowedFileSize > 0) && (fileSizeMb > maxAllowedFileSize))
-            {
-                DeleteFile(filePath, $"file size {fileSizeMb}MB is more than {maxAllowedFileSize}MB");
-                return true;
-            }
-            return false;
+            await sch.Shutdown(cancellationToken);
         }
+    }
 
-        private void DeleteFile(string filePath, string deleteMsg)
-        {
-            bool isFileUnLocked = WaitForFile(filePath);
-            if (isFileUnLocked)
-            {
-                File.Delete(filePath);
-                logger.LogWarning($"{filePath} deleted, {deleteMsg}");
-            }
-        }
+    private void OnFileChanged(object sender, FileSystemEventArgs e, FolderMonitorConfig folderConfig)
+    {
+        //logger.LogWarning($"{e.ChangeType}");
+        _ = filesService.DeleteFileIfViolating(e.FullPath, folderConfig);
+    }
 
-        private void OnFileWatcherError(object sender, ErrorEventArgs e)
-        {
-            logger.LogError($"File error event {e.GetException().Message}");
-        }
-
-        public void ProcessDirectory(string targetDirectory, FolderMonitorConfig folderConfig)
-        {
-            // Process the list of files found in the directory.
-            foreach (string fileName in Directory.EnumerateFiles(targetDirectory))
-                _ = DeleteFileIfViolating(fileName, folderConfig);
-
-            // Recurse into subdirectories of this directory.
-            if (folderConfig.IncludeSubFolders)
-            {
-                foreach (string subdirectory in Directory.EnumerateDirectories(targetDirectory))
-                    ProcessDirectory(subdirectory, folderConfig);
-            }
-        }
-
-        private bool WaitForFile(string fullPath)
-        {
-            int numTries = 0;
-            while (true)
-            {
-                ++numTries;
-                try
-                {
-                    // Attempt to open the file exclusively.
-                    using (FileStream fs = new FileStream(fullPath,
-                        FileMode.Open, FileAccess.ReadWrite,
-                        FileShare.None, 100))
-                    {
-                        fs.ReadByte();
-                        // If we got this far the file is ready
-                        break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    //logger.LogWarning(
-                    //   "WaitForFile {0} failed to get an exclusive lock: {1}",
-                    //    fullPath, ex.ToString());
-
-                    if (numTries > _maxRetries)
-                    {
-                        logger.LogWarning(
-                            "WaitForFile {0} giving up after 10 tries",
-                            fullPath);
-                        return false;
-                    }
-
-                    // Wait for the lock to be released
-                    Thread.Sleep(500);
-                }
-            }
-
-            logger.LogTrace("WaitForFile {0} returning true after {1} tries",
-                fullPath, numTries);
-            return true;
-        }
-
+    private void OnFileWatcherError(object sender, ErrorEventArgs e)
+    {
+        logger.LogError($"File error event {e.GetException().Message}");
     }
 }

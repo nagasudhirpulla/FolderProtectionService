@@ -2,6 +2,6 @@
 
 public interface IAppFileWatcher
 {
-    public void Start();
-    public void Stop();
+    public Task StartAsync(CancellationToken cancellationToken);
+    public Task Stop(CancellationToken cancellationToken);
 }

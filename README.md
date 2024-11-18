@@ -19,7 +19,9 @@
       "MaxFileSizeMb": 0.0001,
       "Enabled": true,
       "IncludeSubFolders": false,
-      "InitialScan": true
+      "InitialScan": true,
+      "MaxAgeDays": 20,
+      "AgeCheckCron": "0 * * * * ?"
     }
   ]
 },
@@ -49,3 +51,6 @@ dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false
 ## Run the app as a background service with nssm
 TODO
 * Quartz schedule job from a controller - https://github.com/quartznet/quartznet/blob/main/src/Quartz.Examples.AspNetCore/Pages/Index.cshtml.cs
+* https://www.quartz-scheduler.net/documentation/quartz-3.x/how-tos/one-off-job.html#dynamic-registration
+* CRON syntax tutorial - https://crontab.guru/
+* Attach data to job - https://stackoverflow.com/questions/46542950/quartz-net-how-to-send-instance-of-class-through-context

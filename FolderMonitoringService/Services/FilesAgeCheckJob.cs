@@ -1,0 +1,31 @@
+﻿using FolderMonitoringService.Config;
+using Quartz;
+
+namespace FolderMonitoringService.Services;
+
+public class FilesAgeCheckJob(FilesService filesService, ILogger<FilesAgeCheckJob> logger) : IJob
+{
+    public async Task Execute(IJobExecutionContext context)
+    {
+        // checks all files / folders of a folder for old files and delete them
+        logger.LogDebug($"Started file age checking job at {DateTime.Now}");
+        FolderMonitorConfig folderConfig = context.JobDetail.JobDataMap[nameof(FolderMonitorConfig)] as FolderMonitorConfig ?? throw new Exception("folder monitoring config not provided for job");
+        ProcessDirectory(folderConfig.FolderPath, folderConfig);
+        logger.LogDebug($"Ended file age checking job at {DateTime.Now}");
+        await Task.FromResult(0);
+    }
+
+    public void ProcessDirectory(string targetDirectory, FolderMonitorConfig folderConfig)
+    {
+        // Process the list of files found in the directory.
+        foreach (string fileName in Directory.EnumerateFiles(targetDirectory))
+            _ = filesService.DeleteFileIfOld(fileName, folderConfig);
+
+        // Recurse into subdirectories of this directory.
+        if (folderConfig.IncludeSubFolders)
+        {
+            foreach (string subdirectory in Directory.EnumerateDirectories(targetDirectory))
+                ProcessDirectory(subdirectory, folderConfig);
+        }
+    }
+}
