@@ -1,54 +1,26 @@
 ﻿using FolderMonitoringService.Config;
 using FolderMonitoringService.Interfaces;
-using Quartz;
-using Quartz.Util;
 
 namespace FolderMonitoringService.Services;
 
-public class AppFileWatcher(ILogger<AppFileWatcher> logger, IConfiguration configuration, ISchedulerFactory schedulerFactory, FilesService filesService) : IAppFileWatcher
+public class FileChangeWatcher(ILogger<FileChangeWatcher> logger, FilesService filesService, FolderConfigsService folderConfigsService) : IFilesMonitorService
 {
     private readonly List<FileSystemWatcher> FolderWatchers = [];
-    private readonly List<FolderMonitorConfig> FolderMonitorConfigs = configuration.GetSection("Folders").Get<List<FolderMonitorConfig>>() ?? [];
+    private readonly List<FolderMonitorConfig> FolderMonitorConfigs = folderConfigsService.FolderMonitorConfigs;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         // Start the file system watcher for each of the file specification
-        await StartFileSystemWatcherAsync(cancellationToken);
+        StartFileSystemWatcher(cancellationToken); 
+        await Task.FromResult(0);
     }
-    private async Task StartFileSystemWatcherAsync(CancellationToken cancellationToken)
+    private void StartFileSystemWatcher(CancellationToken cancellationToken)
     {
         // Create folder watcher for each configuration
         foreach (FolderMonitorConfig folderConfig in FolderMonitorConfigs)
         {
-            DirectoryInfo dir = new(folderConfig.FolderPath);
-
-            // check if directory is valid
-            if (!dir.Exists)
-            {
-                logger.LogError($"directory not found at {folderConfig.FolderPath}");
-                continue;
-            }
-
-            // Checks whether the folder is enabled
-            if (!folderConfig.Enabled)
-            {
-                logger.LogError($"directory monitoring disabled for {folderConfig.FolderPath}");
-                continue;
-            }
-
             // Creates a new instance of FileSystemWatcher
             FileSystemWatcher folderWatch = new();
-
-            // clean allowed extensions
-            folderConfig.AllowedExtensions = folderConfig.AllowedExtensions.Select(e =>
-            {
-                string extnsStr = e.ToLower();
-                if (!extnsStr.StartsWith('.'))
-                {
-                    extnsStr = "." + extnsStr;
-                }
-                return extnsStr;
-            }).ToList();
 
             // Folder location to monitor
             folderWatch.Path = folderConfig.FolderPath;
@@ -79,19 +51,6 @@ public class AppFileWatcher(ILogger<AppFileWatcher> logger, IConfiguration confi
 
             // Record a log entry into Windows Event Log
             logger.LogInformation(message: $"Starting to monitor files for allowed extensions {string.Join(", ", folderConfig.AllowedExtensions)} in the folder {folderWatch.Path}");
-
-            // configure file age monitoring schedulers
-            if (folderConfig.MaxAgeDays > 0 && !folderConfig.AgeCheckCron.IsNullOrWhiteSpace())
-            {
-                var trigger = TriggerBuilder.Create()
-                            .WithCronSchedule(folderConfig.AgeCheckCron)
-                            .Build();
-                var job = JobBuilder.Create<FilesAgeCheckJob>()
-                           .Build();
-                job.JobDataMap[nameof(FolderMonitorConfig)] = folderConfig;
-                var scheduler = await schedulerFactory.GetScheduler(cancellationToken);
-                await scheduler.ScheduleJob(job, trigger, cancellationToken);
-            }
         }
 
         // perform initial folder scan if required
@@ -126,12 +85,7 @@ public class AppFileWatcher(ILogger<AppFileWatcher> logger, IConfiguration confi
         }
         // Clean the list
         FolderWatchers.Clear();
-
-        // stop all schedulers
-        foreach (var sch in await schedulerFactory.GetAllSchedulers(cancellationToken))
-        {
-            await sch.Shutdown(cancellationToken);
-        }
+        await Task.FromResult(0);
     }
 
     private void OnFileChanged(object sender, FileSystemEventArgs e, FolderMonitorConfig folderConfig)

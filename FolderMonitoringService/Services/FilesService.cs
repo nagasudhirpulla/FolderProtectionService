@@ -1,5 +1,4 @@
 ﻿using FolderMonitoringService.Config;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FolderMonitoringService.Services;
 
@@ -104,7 +103,7 @@ public class FilesService(ILogger<Worker> logger)
                     break;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //logger.LogWarning(
                 //   "WaitForFile {0} failed to get an exclusive lock: {1}",
