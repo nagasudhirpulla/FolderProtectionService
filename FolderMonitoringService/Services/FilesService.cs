@@ -60,9 +60,9 @@ public class FilesService(ILogger<Worker> logger)
     {
         if (maxAgeDays <= 0) { return false; }
         DateTime fileCreatedAt = File.GetCreationTime(filePath);
-        DateTime fileModifiedAt = File.GetLastWriteTime(filePath);
-        var fileTime = new DateTime(Math.Min(fileCreatedAt.Ticks, fileModifiedAt.Ticks));
-        if (DateTime.Now - fileTime > TimeSpan.FromDays(maxAgeDays))
+        //DateTime fileModifiedAt = File.GetLastWriteTime(filePath);
+        //var fileTime = new DateTime(Math.Min(fileCreatedAt.Ticks, fileModifiedAt.Ticks));
+        if (DateTime.Now - fileCreatedAt > TimeSpan.FromDays(maxAgeDays))
         {
             return true;
         }
