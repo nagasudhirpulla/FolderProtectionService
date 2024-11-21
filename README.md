@@ -21,7 +21,7 @@
       "IncludeSubFolders": false,
       "InitialScan": true,
       "MaxAgeDays": 20,
-      "AgeCheckCron": "0 * * * * ?"
+      "FolderCheckCron": "0 * * * * ?"
     }
   ]
 },

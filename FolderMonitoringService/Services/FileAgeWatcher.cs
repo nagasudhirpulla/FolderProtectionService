@@ -15,9 +15,9 @@ public class FileAgeWatcher(ILogger<FileAgeWatcher> logger, FolderConfigsService
         logger.LogInformation("Setting up file age monitoring schedulers");
         foreach (FolderMonitorConfig folderConfig in folderConfigsService.FolderMonitorConfigs)
         {
-            if (folderConfig.MaxAgeDays > 0 && !folderConfig.AgeCheckCron.IsNullOrWhiteSpace())
+            if (folderConfig.MaxAgeDays > 0 && !folderConfig.FolderCheckCron.IsNullOrWhiteSpace())
             {
-                string cronExpr = folderConfig.AgeCheckCron;
+                string cronExpr = folderConfig.FolderCheckCron;
                 try
                 {
                     _ = new CronExpression(cronExpr);

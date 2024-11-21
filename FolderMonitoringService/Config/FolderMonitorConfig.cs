@@ -9,5 +9,5 @@ public class FolderMonitorConfig
     public bool IncludeSubFolders { get; set; } = false;
     public bool InitialScan { get; set; } = true;
     public float MaxAgeDays { get; set; } = 0;
-    public string AgeCheckCron { get; set; } = "";
+    public string FolderCheckCron { get; set; } = "";
 }
