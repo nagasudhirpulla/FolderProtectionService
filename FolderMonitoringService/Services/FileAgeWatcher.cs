@@ -17,8 +17,19 @@ public class FileAgeWatcher(ILogger<FileAgeWatcher> logger, FolderConfigsService
         {
             if (folderConfig.MaxAgeDays > 0 && !folderConfig.AgeCheckCron.IsNullOrWhiteSpace())
             {
+                string cronExpr = folderConfig.AgeCheckCron;
+                try
+                {
+                    _ = new CronExpression(cronExpr);
+                }
+                catch (FormatException e)
+                {
+                    logger.LogError($"Invalid CRON expression provided - {cronExpr} with error {e.Message}");
+                    continue;
+                }
+
                 var trigger = TriggerBuilder.Create()
-                            .WithCronSchedule(folderConfig.AgeCheckCron)
+                            .WithCronSchedule(cronExpr)
                             .Build();
                 var job = JobBuilder.Create<FilesAgeCheckJob>()
                            .Build();
