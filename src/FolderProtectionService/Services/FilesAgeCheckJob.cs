@@ -1,7 +1,7 @@
-﻿using FolderMonitoringService.Config;
+﻿using FolderProtectionService.Config;
 using Quartz;
 
-namespace FolderMonitoringService.Services;
+namespace FolderProtectionService.Services;
 
 public class FilesAgeCheckJob(FilesService filesService, ILogger<FilesAgeCheckJob> logger) : IJob
 {

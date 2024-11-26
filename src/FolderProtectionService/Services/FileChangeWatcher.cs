@@ -1,7 +1,7 @@
-﻿using FolderMonitoringService.Config;
-using FolderMonitoringService.Interfaces;
+﻿using FolderProtectionService.Config;
+using FolderProtectionService.Interfaces;
 
-namespace FolderMonitoringService.Services;
+namespace FolderProtectionService.Services;
 
 public class FileChangeWatcher(ILogger<FileChangeWatcher> logger, FilesService filesService, FolderConfigsService folderConfigsService) : IFilesMonitorService
 {

@@ -1,4 +1,4 @@
-# FolderMonitoringService
+# FolderProtectionService
 
 ## Features
 * The program monitors configured folders for changes to enforce the following policies 
@@ -49,7 +49,6 @@ dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false
   * Produce single file
 
 ## Run the app as a background service with nssm
-TODO
 * Quartz schedule job from a controller - https://github.com/quartznet/quartznet/blob/main/src/Quartz.Examples.AspNetCore/Pages/Index.cshtml.cs
 * https://www.quartz-scheduler.net/documentation/quartz-3.x/how-tos/one-off-job.html#dynamic-registration
 * CRON syntax tutorial - https://crontab.guru/

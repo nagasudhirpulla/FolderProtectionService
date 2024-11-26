@@ -1,9 +1,9 @@
-﻿using FolderMonitoringService.Config;
-using FolderMonitoringService.Interfaces;
+﻿using FolderProtectionService.Config;
+using FolderProtectionService.Interfaces;
 using Quartz.Util;
 using Quartz;
 
-namespace FolderMonitoringService.Services;
+namespace FolderProtectionService.Services;
 
 public class FileAgeWatcher(ILogger<FileAgeWatcher> logger, FolderConfigsService folderConfigsService, ISchedulerFactory schedulerFactory) : IFilesMonitorService
 {

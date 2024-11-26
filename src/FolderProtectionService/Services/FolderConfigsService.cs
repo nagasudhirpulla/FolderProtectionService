@@ -1,6 +1,6 @@
-﻿using FolderMonitoringService.Config;
+﻿using FolderProtectionService.Config;
 
-namespace FolderMonitoringService.Services;
+namespace FolderProtectionService.Services;
 
 public class FolderConfigsService(ILogger<FolderConfigsService> logger, IConfiguration configuration)
 {

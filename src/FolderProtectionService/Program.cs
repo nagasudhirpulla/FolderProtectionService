@@ -1,5 +1,5 @@
-using FolderMonitoringService;
-using FolderMonitoringService.Services;
+using FolderProtectionService;
+using FolderProtectionService.Services;
 using Quartz;
 
 var builder = Host.CreateApplicationBuilder(args);

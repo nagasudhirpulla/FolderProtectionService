@@ -1,4 +1,4 @@
-﻿namespace FolderMonitoringService.Interfaces;
+﻿namespace FolderProtectionService.Interfaces;
 
 public interface IFilesMonitorService
 {

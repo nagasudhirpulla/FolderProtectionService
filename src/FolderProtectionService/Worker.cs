@@ -1,7 +1,7 @@
-using FolderMonitoringService.Interfaces;
-using FolderMonitoringService.Services;
+using FolderProtectionService.Interfaces;
+using FolderProtectionService.Services;
 
-namespace FolderMonitoringService
+namespace FolderProtectionService
 {
     public class Worker(ILogger<Worker> logger, IFilesMonitorService fileWatcher, FileAgeWatcher fileAgeWatcher) : BackgroundService
     {

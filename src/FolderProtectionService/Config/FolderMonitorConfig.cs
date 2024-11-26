@@ -1,4 +1,4 @@
-﻿namespace FolderMonitoringService.Config;
+﻿namespace FolderProtectionService.Config;
 
 public class FolderMonitorConfig
 {
