@@ -3,7 +3,7 @@ using FolderProtectionService.Services;
 
 namespace FolderProtectionService
 {
-    public class Worker(ILogger<Worker> logger, IFilesMonitorService fileWatcher, FileAgeWatcher fileAgeWatcher) : BackgroundService
+    public class Worker(ILogger<Worker> logger, FileChangeWatcher fileWatcher, FileAgeWatcher fileAgeWatcher) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -19,7 +19,7 @@ namespace FolderProtectionService
 
         public override async Task StopAsync(CancellationToken stoppingToken)
         {
-            await fileWatcher.Stop(stoppingToken);            
+            await fileWatcher.Stop(stoppingToken);
             await fileAgeWatcher.Stop(stoppingToken);
 
             await base.StopAsync(stoppingToken);

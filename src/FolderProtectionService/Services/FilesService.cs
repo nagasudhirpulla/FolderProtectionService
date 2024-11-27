@@ -75,12 +75,12 @@ public class FilesService(ILogger<Worker> logger)
         if (isFileUnLocked)
         {
             File.Delete(filePath);
-            logger.LogWarning($"{filePath} deleted, {deleteMsg}");
+            logger.LogWarning("{filePath} deleted, {deleteMsg}", filePath, deleteMsg);
             return true;
         }
         else
         {
-            logger.LogError($"Unable to delete {filePath} since file was locked, {deleteMsg}");
+            logger.LogError("Unable to delete {filePath} since file was locked, {deleteMsg}", filePath, deleteMsg);
             return false;
         }
     }
@@ -94,7 +94,7 @@ public class FilesService(ILogger<Worker> logger)
             try
             {
                 // Attempt to open the file exclusively.
-                using (FileStream fs = new FileStream(fullPath,
+                using (FileStream fs = new(fullPath,
                     FileMode.Open, FileAccess.ReadWrite,
                     FileShare.None, 100))
                 {
@@ -112,7 +112,7 @@ public class FilesService(ILogger<Worker> logger)
                 if (numTries > _maxRetries)
                 {
                     logger.LogWarning(
-                        "WaitForFile {0} giving up after 10 tries",
+                        "WaitForFile {fullPath} giving up after 10 tries",
                         fullPath);
                     return false;
                 }
@@ -122,7 +122,7 @@ public class FilesService(ILogger<Worker> logger)
             }
         }
 
-        logger.LogTrace("WaitForFile {0} returning true after {1} tries",
+        logger.LogTrace("WaitForFile {fullPath} returning true after {numTries} tries",
             fullPath, numTries);
         return true;
     }
