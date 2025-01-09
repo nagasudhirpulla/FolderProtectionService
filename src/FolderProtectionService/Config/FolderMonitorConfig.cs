@@ -1,5 +1,11 @@
 ﻿namespace FolderProtectionService.Config;
 
+/// <summary>
+/// Folder monitoring parameters.
+/// Each folder to be monitored will have a configuration object.
+/// The configuration objects for all the folders to be monitored
+/// can be accessed from appsettings json file
+/// </summary>
 public class FolderMonitorConfig
 {
     public required string FolderPath { get; set; }

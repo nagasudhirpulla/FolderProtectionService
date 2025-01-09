@@ -3,6 +3,12 @@ using FolderProtectionService.Interfaces;
 
 namespace FolderProtectionService.Services;
 
+/// <summary>
+/// Watches for changes in configured folders and deletes the files if they are violating constraints
+/// </summary>
+/// <param name="logger"></param>
+/// <param name="filesService"></param>
+/// <param name="folderConfigsService"></param>
 public class FileChangeWatcher(ILogger<FileChangeWatcher> logger, FilesService filesService, FolderConfigsService folderConfigsService) : IFilesMonitorService
 {
     private readonly List<FileSystemWatcher> FolderWatchers = [];

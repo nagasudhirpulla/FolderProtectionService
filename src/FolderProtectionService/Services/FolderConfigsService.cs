@@ -2,6 +2,11 @@
 
 namespace FolderProtectionService.Services;
 
+/// <summary>
+/// Gets the file monitoring cnofiguration objects
+/// </summary>
+/// <param name="logger"></param>
+/// <param name="configuration">Application configuration (mainly from appsettings, environment variables etc.)</param>
 public class FolderConfigsService(ILogger<FolderConfigsService> logger, IConfiguration configuration)
 {
     public readonly List<FolderMonitorConfig> FolderMonitorConfigs = GetConfigs(logger, configuration);

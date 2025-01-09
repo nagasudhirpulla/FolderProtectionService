@@ -5,6 +5,13 @@ using Quartz;
 
 namespace FolderProtectionService.Services;
 
+/// <summary>
+/// Sets up and manages cron jobs as per configured periodicity 
+/// to delete the files in configured folders if they are violating file age constraints
+/// </summary>
+/// <param name="logger"></param>
+/// <param name="folderConfigsService"></param>
+/// <param name="schedulerFactory"></param>
 public class FileAgeWatcher(ILogger<FileAgeWatcher> logger, FolderConfigsService folderConfigsService, ISchedulerFactory schedulerFactory) : IFilesMonitorService
 {
     private readonly List<FolderMonitorConfig> FolderMonitorConfigs = folderConfigsService.FolderMonitorConfigs;

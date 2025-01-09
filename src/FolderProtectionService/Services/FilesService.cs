@@ -2,6 +2,11 @@
 
 namespace FolderProtectionService.Services;
 
+/// <summary>
+/// Service that can execute file system operations 
+/// required by application like delete file if violating constraints
+/// </summary>
+/// <param name="logger"></param>
 public class FilesService(ILogger<Worker> logger)
 {
     private const int _maxRetries = 10;

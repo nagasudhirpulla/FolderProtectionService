@@ -3,6 +3,11 @@ using Quartz;
 
 namespace FolderProtectionService.Services;
 
+/// <summary>
+/// A cron job script that deletes old files from a folder as per supplied configuration
+/// </summary>
+/// <param name="filesService"></param>
+/// <param name="logger"></param>
 public class FilesAgeCheckJob(FilesService filesService, ILogger<FilesAgeCheckJob> logger) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
