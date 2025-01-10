@@ -1,0 +1,2 @@
+call sc stop folder_protection_service
+call sc delete folder_protection_service

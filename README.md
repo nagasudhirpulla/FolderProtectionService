@@ -79,9 +79,8 @@ dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained true
 * Quartz schedule job from a controller - https://github.com/quartznet/quartznet/blob/main/src/Quartz.Examples.AspNetCore/Pages/Index.cshtml.cs
 * https://www.quartz-scheduler.net/documentation/quartz-3.x/how-tos/one-off-job.html#dynamic-registration
 * Attach data to job - https://stackoverflow.com/questions/46542950/quartz-net-how-to-send-instance-of-class-through-context
+* Inno Setup tutorial - https://youtu.be/l1p2GQxcP54?si=tSVenL46C1bKaQzj
 
 ## TODOs
 * Explore DirectoryScanJob https://www.quartz-scheduler.net/documentation/quartz-3.x/packages/quartz-jobs.html#directoryscanjob
 * Enable Spell checker in IDE
-* nssm script file to run application exe as a windows service
-* Inno Setup tutorial - https://youtu.be/l1p2GQxcP54?si=tSVenL46C1bKaQzj

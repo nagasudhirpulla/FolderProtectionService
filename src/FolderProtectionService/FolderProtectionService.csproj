@@ -8,6 +8,32 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="AppInstallerGenScript.iss" />
+    <None Remove="logo.ico" />
+    <None Remove="logo.png" />
+    <None Remove="nssm.exe" />
+    <None Remove="serviceRegister.bat" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="AppInstallerGenScript.iss">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="logo.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="nssm.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="serviceDelete.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="serviceRegister.bat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
     <PackageReference Include="Quartz" Version="3.13.1" />
     <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.13.1" />
