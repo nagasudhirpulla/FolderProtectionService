@@ -55,10 +55,10 @@ Fields can contain any of the allowed values, along with various combinations of
 * While publishing with .NET CLI, following command can be used to create a self-contained executable file
 
 ```bash
-dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false
+dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained true
 ```
 
-* * While publishing with Visual Studio, edit the publish profile settings as follows
+* While publishing with Visual Studio, edit the publish profile settings as follows
   * Profile Name - Folder profile
   * Configuration - Release | Any CPU
   * Deployment mode - Self-contained
@@ -66,7 +66,12 @@ dotnet publish -r win-x64 -p:PublishSingleFile=true --self-contained false
   * Produce single file
 
 ## Run the app as a background service with nssm
-TODO
+* nssm will be used to run the exe file of the application as a windows background service
+
+## Package the app with installer
+* Inno Setup is used to package the exe with installer
+* nssm windows service setup script will be run after software installation
+* nssm windows service stop and delete script will run after software un-installation
 
 ## References
 * Quartz Cron syntax docs - https://www.quartz-scheduler.net/documentation/quartz-3.x/how-tos/crontrigger.html#format
@@ -77,4 +82,6 @@ TODO
 
 ## TODOs
 * Explore DirectoryScanJob https://www.quartz-scheduler.net/documentation/quartz-3.x/packages/quartz-jobs.html#directoryscanjob
-* Enable Spell checker
+* Enable Spell checker in IDE
+* nssm script file to run application exe as a windows service
+* Inno Setup tutorial - https://youtu.be/l1p2GQxcP54?si=tSVenL46C1bKaQzj
