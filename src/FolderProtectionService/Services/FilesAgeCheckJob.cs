@@ -24,7 +24,10 @@ public class FilesAgeCheckJob(FilesService filesService, ILogger<FilesAgeCheckJo
     {
         // Process the list of files found in the directory.
         foreach (string fileName in Directory.EnumerateFiles(targetDirectory))
-            _ = filesService.DeleteFileIfOld(fileName, folderConfig);
+        {
+            // TODO check file whitelist
+            _ = filesService.DeleteFileIfOld(fileName, folderConfig); 
+        }
 
         // Recurse into subdirectories of this directory.
         if (folderConfig.IncludeSubFolders)

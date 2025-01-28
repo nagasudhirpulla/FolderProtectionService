@@ -97,6 +97,7 @@ public class FileChangeWatcher(ILogger<FileChangeWatcher> logger, FilesService f
     private void OnFileChanged(object sender, FileSystemEventArgs e, FolderMonitorConfig folderConfig)
     {
         //logger.LogWarning($"{e.ChangeType}");
+        // TODO check file whitelist
         _ = filesService.DeleteFileIfViolating(e.FullPath, folderConfig);
     }
 

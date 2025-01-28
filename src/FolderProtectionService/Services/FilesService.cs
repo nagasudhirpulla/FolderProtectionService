@@ -1,4 +1,5 @@
 ﻿using FolderProtectionService.Config;
+using System.Security.Cryptography;
 
 namespace FolderProtectionService.Services;
 
@@ -14,7 +15,10 @@ public class FilesService(ILogger<Worker> logger)
     {
         // Process the list of files found in the directory.
         foreach (string fileName in Directory.EnumerateFiles(targetDirectory))
-            _ = DeleteFileIfViolating(fileName, folderConfig);
+        {
+            // TODO check for whitelist
+            _ = DeleteFileIfViolating(fileName, folderConfig); 
+        }
 
         // Recurse into subdirectories of this directory.
         if (folderConfig.IncludeSubFolders)
@@ -130,5 +134,13 @@ public class FilesService(ILogger<Worker> logger)
         logger.LogTrace("WaitForFile {fullPath} returning true after {numTries} tries",
             fullPath, numTries);
         return true;
+    }
+    private static string GetFileHash(string fullPath)
+    {
+        // TODO check if correct
+        using var md5 = MD5.Create();
+        using var stream = File.OpenRead(fullPath);
+        var hash = md5.ComputeHash(stream);
+        return Convert.ToHexStringLower(hash);
     }
 }
