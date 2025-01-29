@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "FolderProtectionService"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.1"
 #define MyAppPublisher "Pulla Naga Sudhir"
 #define MyAppURL "https://github.com/nagasudhirpulla"
 
@@ -31,9 +31,9 @@ SetupIconFile=logo.ico
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "appsettings.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "FolderProtectionService.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "FolderProtectionService.pdb"; DestDir: "{app}"; Flags: ignoreversion
+Source: "appsettings_sample.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\FolderProtectionService.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\FolderProtectionService.pdb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "nssm.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "serviceRegister.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "serviceDelete.bat"; DestDir: "{app}"; Flags: ignoreversion

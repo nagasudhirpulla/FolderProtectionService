@@ -100,7 +100,7 @@ public class FileChangeWatcher(ILogger<FileChangeWatcher> logger, FilesService f
         // check if file is whitelisted
         if (FilesService.CheckIfFileWhitelisted(folderConfig, e.FullPath))
         {
-            logger.LogWarning($"Skipping whitelisted file {Path.GetFileName(fileName)}");
+            logger.LogWarning($"Skipping whitelisted file {Path.GetFileName(e.FullPath)}");
             return;
         }
         _ = filesService.DeleteFileIfViolating(e.FullPath, folderConfig);

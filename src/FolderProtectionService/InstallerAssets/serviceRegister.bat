@@ -1,3 +1,7 @@
+rem delete service if exists
+call sc stop folder_protection_service
+call sc delete folder_protection_service
+rem insall service
 call nssm.exe install folder_protection_service "%cd%\FolderProtectionService.exe"
 call nssm.exe set folder_protection_service AppStdout "%programdata%\FolderProtectionService\folder_protection_service.log"
 call nssm.exe set folder_protection_service AppStderr "%programdata%\FolderProtectionService\folder_protection_service.log"
