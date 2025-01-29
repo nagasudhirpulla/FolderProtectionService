@@ -16,8 +16,13 @@ public class FilesService(ILogger<Worker> logger)
         // Process the list of files found in the directory.
         foreach (string fileName in Directory.EnumerateFiles(targetDirectory))
         {
-            // TODO check for whitelist
-            _ = DeleteFileIfViolating(fileName, folderConfig); 
+            // check if file is whitelisted
+            if (CheckIfFileWhitelisted(folderConfig, fileName))
+            {
+                logger.LogWarning($"Skipping whitelisted file {Path.GetFileName(fileName)}");
+                continue;
+            }
+            _ = DeleteFileIfViolating(fileName, folderConfig);
         }
 
         // Recurse into subdirectories of this directory.
@@ -137,10 +142,19 @@ public class FilesService(ILogger<Worker> logger)
     }
     private static string GetFileHash(string fullPath)
     {
-        // TODO check if correct
         using var md5 = MD5.Create();
         using var stream = File.OpenRead(fullPath);
         var hash = md5.ComputeHash(stream);
         return Convert.ToHexStringLower(hash);
+    }
+
+    public static bool CheckIfFileWhitelisted(FolderMonitorConfig folderConfig, string filePath)
+    {
+        FileHashInfo? fileHashInfo = folderConfig.WhitelistFiles.FirstOrDefault(x => x.Name == Path.GetFileName(filePath));
+        if (fileHashInfo != null && (fileHashInfo.Hash == FilesService.GetFileHash(filePath)))
+        {
+            return true;
+        }
+        return false;
     }
 }

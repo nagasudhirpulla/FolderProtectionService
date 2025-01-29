@@ -25,7 +25,12 @@ public class FilesAgeCheckJob(FilesService filesService, ILogger<FilesAgeCheckJo
         // Process the list of files found in the directory.
         foreach (string fileName in Directory.EnumerateFiles(targetDirectory))
         {
-            // TODO check file whitelist
+            // check if file is whitelisted
+            if (FilesService.CheckIfFileWhitelisted(folderConfig, fileName))
+            {
+                logger.LogWarning($"Skipping whitelisted file {Path.GetFileName(fileName)}");
+                return;
+            }
             _ = filesService.DeleteFileIfOld(fileName, folderConfig); 
         }
 

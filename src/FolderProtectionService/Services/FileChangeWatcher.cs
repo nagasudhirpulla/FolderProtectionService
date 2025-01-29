@@ -17,7 +17,7 @@ public class FileChangeWatcher(ILogger<FileChangeWatcher> logger, FilesService f
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         // Start the file system watcher for each of the file specification
-        StartFileSystemWatcher(cancellationToken); 
+        StartFileSystemWatcher(cancellationToken);
         await Task.FromResult(0);
     }
     private void StartFileSystemWatcher(CancellationToken cancellationToken)
@@ -97,7 +97,12 @@ public class FileChangeWatcher(ILogger<FileChangeWatcher> logger, FilesService f
     private void OnFileChanged(object sender, FileSystemEventArgs e, FolderMonitorConfig folderConfig)
     {
         //logger.LogWarning($"{e.ChangeType}");
-        // TODO check file whitelist
+        // check if file is whitelisted
+        if (FilesService.CheckIfFileWhitelisted(folderConfig, e.FullPath))
+        {
+            logger.LogWarning($"Skipping whitelisted file {Path.GetFileName(fileName)}");
+            return;
+        }
         _ = filesService.DeleteFileIfViolating(e.FullPath, folderConfig);
     }
 
